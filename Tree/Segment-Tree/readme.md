@@ -11,6 +11,7 @@ Video Tutorial - https://www.youtube.com/watch?v=2bSS8rtFym4&ab_channel=TECHDOSE
 <img width="820" src="https://user-images.githubusercontent.com/27401142/182177229-6db97527-7130-403a-ae90-0032b5e4f39c.png">
 
 ```cpp
+SUM RANGE QUERY 🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴
 void updateValue(vector<int>& st, int start, int end, int updatingIdx, int diff, int idx) {
     // To be updated idx is outside range
     if (updatingIdx < start || updatingIdx > end)
@@ -95,5 +96,234 @@ int main() {
     cout << getSum(st, 0, n - 1, searchStartIdx, searchEndIdx, 0) << endl;
 
     return 0;
+}
+
+
+
+
+
+
+RANGE MINIMUM QUERY 🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴
+#include <iostream>
+#include <vector>
+#include <algorithm>
+using namespace std;
+int getMid(int s, int e)
+{
+	return s + (e - s) / 2;
+}
+
+void updateValueUtil(vector<int> &st, int si, int L, int R, int i, int delta, int new_val)
+{
+	if (i < L || i > R)
+		return;
+
+	if (R == L)
+	{
+		st[si] += delta;
+	}
+	else
+	{
+		int mid = getMid(L, R);
+		updateValueUtil(st, si * 2 + 1, L, mid, i, delta, new_val);
+		updateValueUtil(st, si * 2 + 2, mid + 1, R, i, delta, new_val);
+		st[si] = min(st[si * 2 + 1], st[si * 2 + 2]);
+	}
+}
+
+void updateValue(vector<int> &arr, vector<int> &st, int n, int i, int new_val)
+{
+	if (i < 0 || i > n - 1)
+	{
+		cout << "Invalid input";
+		return;
+	}
+	int delta = new_val - arr[i];
+	arr[i] = new_val;
+	updateValueUtil(st, 0, 0, n - 1, i, delta, new_val);
+}
+
+int getMinUtil(vector<int> &st, int L, int R, int sL, int sR, int si)
+{
+	if (sL <= L && sR >= R)
+		return st[si];
+	if (R < sL || L > sR)
+		return INT_MAX;
+	int mid = getMid(L, R);
+	return min(getMinUtil(st, L, mid, sL, sR, 2 * si + 1),
+		getMinUtil(st, mid + 1, R, sL, sR, 2 * si + 2));
+}
+
+int getMin(vector<int> &st, int n, int L, int R)
+{
+	if (L < 0 || R > n - 1 || L > R)
+	{
+		printf("Invalid Input");
+		return -1;
+	}
+	return getMinUtil(st, 0, n - 1, L, R, 0);
+}
+
+int constructSTUtil(vector<int> &st, int si, vector<int> &arr, int L, int R)
+{
+	if (L == R)
+	{
+		st[si] = arr[L];
+		return arr[L];
+	}
+	int mid = getMid(L, R);
+	st[si] = min(constructSTUtil(st, si * 2 + 1, arr, L, mid),
+		constructSTUtil(st, si * 2 + 2, arr, mid + 1, R));
+	return st[si];
+}
+
+int getMaxSize(int n)
+{
+	int x = (int)(ceil(log2(n)));
+	return 2 * (int)pow(2, x) - 1;
+}
+
+vector<int> constructST(vector<int> &arr)
+{
+	int max_size = getMaxSize(arr.size());
+	vector<int> st(max_size, 0);
+	constructSTUtil(st, 0, arr, 0, arr.size() - 1);
+	return st;
+}
+
+void printSegmentTree(vector<int> st, int max_size)
+{
+	for (int i = 0; i < max_size; i++)
+	{
+		cout << st[i] << " ";
+	}
+	cout << endl;
+}
+
+int main()
+{
+	vector<int> arr{ 5, 2, 7, 1, 3 };
+	vector<int> st = constructST(arr);
+	printSegmentTree(st, getMaxSize(arr.size()));
+	cout << "Min of values in given range = " << getMin(st, arr.size(), 2, 4) << endl;
+
+	updateValue(arr, st, arr.size(), 3, 11);
+	printSegmentTree(st, getMaxSize(arr.size()));
+	cout << "Updated min of given range = " << getMin(st, arr.size(), 2, 4) << endl;
+
+	updateValue(arr, st, arr.size(), 3, 1);
+	printSegmentTree(st, getMaxSize(arr.size()));
+	cout << "Updated min of given range = " << getMin(st, arr.size(), 2, 4) << endl;
+	return 0;
+}
+
+
+
+XOR RANGE QUERY 🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴
+#include <iostream>
+#include <vector>
+using namespace std;
+int getMid(int s, int e)
+{
+	return s + (e - s) / 2;
+}
+
+void updateValueUtil(vector<int> &st, int si, int L, int R, int i, int prev_val, int new_val)
+{
+	if (i < L || i > R)
+		return;
+	st[si] = (st[si] ^ prev_val) ^ new_val; // xor the previous value to nullify with node before xoring new value
+	if (R != L)
+	{
+		int mid = getMid(L, R);
+		updateValueUtil(st, si * 2 + 1, L, mid, i, prev_val, new_val);
+		updateValueUtil(st, si * 2 + 2, mid + 1, R, i, prev_val, new_val);
+	}
+}
+
+void updateValue(vector<int> &arr, vector<int> &st, int n, int i, int new_val)
+{
+	if (i < 0 || i > n - 1)
+	{
+		cout << "Invalid input";
+		return;
+	}
+	int temp = arr[i];
+	arr[i] = new_val;
+	updateValueUtil(st, 0, 0, n - 1, i, temp, new_val);
+}
+
+int getXorUtil(vector<int> &st, int L, int R, int sL, int sR, int si)
+{
+	if (sL <= L && sR >= R)
+		return st[si];
+	if (R < sL || L > sR)
+		return 0;
+	int mid = getMid(L, R);
+	return getXorUtil(st, L, mid, sL, sR, 2 * si + 1) ^
+		getXorUtil(st, mid + 1, R, sL, sR, 2 * si + 2);
+}
+
+int getXor(vector<int> &st, int n, int L, int R)
+{
+	if (L < 0 || R > n - 1 || L > R)
+	{
+		printf("Invalid Input");
+		return -1;
+	}
+	return getXorUtil(st, 0, n - 1, L, R, 0);
+}
+
+int constructSTUtil(vector<int> &st, int si, vector<int> &arr, int L, int R)
+{
+	if (L == R)
+	{
+		st[si] = arr[L];
+		return arr[L];
+	}
+	int mid = getMid(L, R);
+	st[si] = constructSTUtil(st, si * 2 + 1, arr, L, mid) ^
+		constructSTUtil(st, si * 2 + 2, arr, mid + 1, R);
+	return st[si];
+}
+
+int getMaxSize(int n)
+{
+	int x = (int)(ceil(log2(n)));
+	return 2 * (int)pow(2, x) - 1;
+}
+
+vector<int> constructST(vector<int> &arr)
+{
+	int max_size = getMaxSize(arr.size());
+	vector<int> st(max_size, 0);
+	constructSTUtil(st, 0, arr, 0, arr.size() - 1);
+	return st;
+}
+
+void printSegmentTree(vector<int> st, int max_size)
+{
+	for (int i = 0; i < max_size; i++)
+	{
+		cout << st[i] << " ";
+	}
+	cout << endl;
+}
+
+int main()
+{
+	vector<int> arr{ 8,5,3,7,6 };
+	vector<int> st = constructST(arr);
+	printSegmentTree(st, getMaxSize(arr.size()));
+	cout << "Xor of values in given range = " << getXor(st, arr.size(), 2, 4) << endl;
+
+	updateValue(arr, st, arr.size(), 3, 11);
+	printSegmentTree(st, getMaxSize(arr.size()));
+	cout << "Updated xor of given range = " << getXor(st, arr.size(), 2, 4) << endl;
+
+	updateValue(arr, st, arr.size(), 3, 7);
+	printSegmentTree(st, getMaxSize(arr.size()));
+	cout << "Updated xor of given range = " << getXor(st, arr.size(), 2, 4) << endl;
+	return 0;
 }
 ```
